@@ -136,7 +136,7 @@ STATIC_ROOT = "/var/www/htdocs/insighthub_static/"  # Used in production
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = "<OPEN_AI_KEY_HERE>"
 
 AUTHENTICATION_BACKENDS = [
     
