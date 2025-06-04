@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Home - InsightHub{% endblock %}
+{% block content %}
+<section class="py-5 bg-dark text-light">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h1>Welcome to InsightHub.</h1>
+      <h5><i>You have the data? We have the dashboard.</i></h5>
+    </div>
+
+    <div class="d-flex justify-content-center gap-4 flex-wrap mb-5">
+      <img src="{% static 'dashboardapp/images/csv_example.png' %}" class="img-fluid rounded shadow" alt="Example CSV" style="max-width: 45%;">
+      <img src="{% static 'dashboardapp/images/dashboard_example.png' %}" class="img-fluid rounded shadow" alt="Example Dashboard" style="max-width: 45%;">
+    </div>
+
+    <h2 class="text-center"><u>Professional dashboards in 3 steps:</u></h2>
+
+    <div class="row mt-4">
+      <div class="col-md-4 mb-4">
+        <div class="card bg-secondary bg-opacity-10 text-light h-100">
+          <img src="{% static 'dashboardapp/images/create_account_example.png' %}" class="card-img-top p-3 rounded mx-auto" style="max-width: 80%;" alt="Step 1">
+          <div class="card-body text-center">
+            <h5 class="card-title">1. Create an account</h5>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card bg-secondary bg-opacity-10 text-light h-100">
+          <img src="{% static 'dashboardapp/images/upload_example.png' %}" class="card-img-top p-3 rounded mx-auto" style="max-width: 80%;" alt="Step 2">
+          <div class="card-body text-center">
+            <h5 class="card-title">2. Upload a CSV file</h5>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card bg-secondary bg-opacity-10 text-light h-100">
+          <img src="{% static 'dashboardapp/images/dashboard_creation_example.png' %}" class="card-img-top p-3 rounded mx-auto" style="max-width: 80%;" alt="Step 3">
+          <div class="card-body text-center">
+            <h5 class="card-title">3. Drag and drop charts to create your dashboard</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

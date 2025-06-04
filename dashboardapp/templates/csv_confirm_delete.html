@@ -1,0 +1,15 @@
+<!-- csv_confirm_delete.html -->
+{% extends 'base.html' %}
+{% block title %}Delete CSV{% endblock %}
+{% block content %}
+<section class="py-5 bg-dark text-light">
+  <div class="container text-center">
+    <h2>Are you sure you want to delete "{{ object.csv_title }}"?</h2>
+    <form method="post" class="mt-4">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Yes, Delete</button>
+      <a href="{% url 'csv_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+  </div>
+</section>
+{% endblock %}

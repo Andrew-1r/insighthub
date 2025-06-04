@@ -1,0 +1,118 @@
+<!-- dashboard_detail.html -->
+{% extends "base.html" %}
+{% block title %}{{ dashboard.title }} - Edit{% endblock %}
+{% block main_class %}p-0 m-0 w-100 bg-dark{% endblock %}
+{% block content %}
+<div class="container-fluid bg-dark px-0">
+  <nav class="navbar navbar-expand-sm bg-dark">
+    <div class="container-fluid">
+      <!-- show buttons to owners to add graphs and save -->
+      {% if is_owner %}
+      <form method="post" action="" class="d-flex">
+        {% csrf_token %}
+        {{ form.title }}
+        <button type="submit" class="btn btn-success btn-sm ms-2">Rename</button>
+      </form>
+      <div class="collapse navbar-collapse justify-content-end">
+        <button class="btn btn-primary me-2" id="add-bar">Add Bar Graph</button>
+        <button class="btn btn-primary me-2" id="add-line">Add Line Graph</button>
+        <button class="btn btn-primary me-2" id="add-pie">Add Pie Graph</button>
+        <button class="btn btn-success me-2" id="save-grid">Save</button>
+        <span id="save-confirmation" class="text-success fw-bold align-self-center" style="display: none;">Saved!</span>
+      </div>
+      {% else %}
+      <span class="navbar-brand text-light">
+        <i class="bi bi-eye" style="color: cyan;"></i> {{ dashboard.title }}
+      </span>
+      {% endif %}
+    </div>
+  </nav>
+
+  <main class="container-fluid bg-dark">
+    <div class="grid-stack"></div>
+    <!-- give option to owners to delete created charts -->
+    {% if is_owner %}
+      <div id="trash" class="bg-dark border border-danger text-center p-3 text-danger fw-bold">
+        Drop here to delete widget
+      </div>
+    {% endif %}  
+    <textarea id="saved-data" class="form-control d-none"></textarea>
+  </main>
+</div>
+
+<!-- Modal for adding charts based on csv uploads -->
+<div class="modal fade" id="chartModal" tabindex="-1" aria-labelledby="chartModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark text-light">
+      <div class="modal-header">
+        <h5 class="modal-title" id="chartModalLabel">Create Chart</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="chartConfigForm">
+          <div class="mb-3">
+            <label for="chartLabel" class="form-label">Chart Title</label>
+            <input type="text" class="form-control" id="chartLabel" placeholder="Enter a chart name">
+          </div>                
+          <div class="mb-3">
+            <label for="xColumn" class="form-label">X-Axis</label>
+            <select class="form-select" id="xColumn" required></select>
+          </div>
+          <div class="mb-3" id="yColumnGroup">
+            <label for="yColumn" class="form-label">Y-Axis</label>
+            <select class="form-select" id="yColumn"></select>
+          </div>
+          <div class="mb-3" id="colorPickerGroup">
+            <label for="colorPicker" class="form-label">Chart Color</label>
+            <select class="form-select" id="colorPicker">
+                <option value="#e6194b">Red</option>
+                <option value="#3cb44b">Green</option>
+                <option value="#ffe119">Yellow</option>
+                <option value="#4363d8">Blue</option>
+                <option value="#f58231">Orange</option>
+                <option value="#911eb4">Purple</option>
+                <option value="#46f0f0">Cyan</option>
+                <option value="#f032e6">Magenta</option>
+                <option value="#bcf60c">Lime</option>
+                <option value="#fabebe">Pink</option>
+            </select>
+        </div>        
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" id="createChartButton">Create</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Embedded JSON: initial layout if it exists -->
+{% if dashboard.layout_json %}
+{{ dashboard.layout_json|json_script:"initial-layout" }}
+{% endif %}
+
+<!-- Embedded JSON: ownership flag, column types, and available columns -->
+{{ is_owner|yesno:"true,false"|json_script:"is-owner-flag" }}
+{{ column_types|json_script:"column-types-data" }}
+{{ columns|json_script:"columns-data" }}
+
+<!-- Chart builder logic and grid logic included from partial -->
+{% include "partials/chart_gridstack_setup.html" %}
+
+<!-- Feedback animation for save button -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const saveButton = document.getElementById('save-grid');
+    const confirmation = document.getElementById('save-confirmation');
+
+    saveButton.addEventListener('click', () => {
+      confirmation.style.display = 'inline';
+      setTimeout(() => {
+        confirmation.style.display = 'none';
+      }, 2000);
+    });
+  });
+</script>
+{% endblock %}
+

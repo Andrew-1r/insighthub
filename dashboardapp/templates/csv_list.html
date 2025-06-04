@@ -1,0 +1,28 @@
+<!-- csv_list.html -->
+{% extends 'base.html' %}
+{% block title %}My CSV Files{% endblock %}
+{% block content %}
+<section class="py-5 bg-dark text-light">
+  <div class="container">
+    <h1 class="text-center mb-4">{{ user.username }}'s CSV Files</h1>
+
+    <div class="text-center mb-4">
+      <a href="{% url 'csv_upload' %}" class="btn btn-success">Upload CSV file</a>
+    </div>
+
+    {% for csv in csvs %}
+    <div class="d-flex justify-content-center align-items-center gap-4 mt-3 flex-wrap">
+      <span class="fs-5 m-0">{{ csv.csv_title }}</span>
+      <a href="{% url 'csv_edit' csv.pk %}" class="btn btn-primary btn-sm" title="Rename CSV">
+        <i class="bi bi-pencil"></i>
+      </a>
+      <a href="{% url 'csv_delete' csv.pk %}" class="btn btn-danger btn-sm" title="Delete CSV">
+        <i class="bi bi-trash2"></i>
+      </a>
+    </div>
+    {% empty %}
+    <p class="text-center mt-4">No CSV files uploaded yet.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

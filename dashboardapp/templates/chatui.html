@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="py-5">
+    <div class="container-fluid">
+        <h1 class="mb-4 d-flex justify-content-between align-items-center">
+            Dashboard AI Assistant
+            <button id="clearButton" class="btn btn-outline-light">Clear Messages</button>
+        </h1>
+
+        <div class="chat-container">
+            <div id="chatContainer" class="chat-message"></div>
+            <textarea id="response" rows="3" class="form-control mb-2"
+                placeholder="Ask something about making effective dashboards..."></textarea>
+            <button id="sendButton" class="btn btn-primary">Send</button>
+        </div>
+    </div>
+</section>
+
+<!-- Templates -->
+<template id="botMessageTemplate">
+    <div class="bot-message-text mb-3 p-2 rounded">🤖 <span></span></div>
+</template>
+
+<template id="userMessageTemplate">
+    <div class="text-end mb-3">
+        <div class="message-text p-2 rounded"><span></span></div>
+    </div>
+</template>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<script>
+    let messageHistory = [];
+    let thinkingMessageEl = null;
+
+    function addMessage(text, isUser) {
+        const template = document.getElementById(isUser ? "userMessageTemplate" : "botMessageTemplate");
+        const messageEl = template.content.cloneNode(true);
+        const span = messageEl.querySelector("span");
+        span.innerHTML = isUser ? marked.parseInline(text) : marked.parse(text);
+        document.getElementById("chatContainer").appendChild(messageEl);
+        document.getElementById("chatContainer").scrollTop = document.getElementById("chatContainer").scrollHeight;
+    }
+
+    function showThinkingMessage() {
+        const el = document.createElement("div");
+        el.className = "bot-message-text mb-3 p-2 rounded";
+        el.innerHTML = "🤖 <em>Thinking...</em>";
+        document.getElementById("chatContainer").appendChild(el);
+        thinkingMessageEl = el;
+        document.getElementById("chatContainer").scrollTop = document.getElementById("chatContainer").scrollHeight;
+    }
+
+    function removeThinkingMessage() {
+        if (thinkingMessageEl) {
+            thinkingMessageEl.remove();
+            thinkingMessageEl = null;
+        }
+    }
+
+    function sendMessageToServer() {
+        showThinkingMessage();
+        return fetch("{% url 'chatbot' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": '{{ csrf_token }}'
+            },
+            body: JSON.stringify(messageHistory)
+        })
+        .then(res => res.json())
+        .then(data => {
+            removeThinkingMessage();
+            addMessage(data.message, false);
+            messageHistory.push({ role: "assistant", content: data.message });
+        })
+        .catch(err => {
+            removeThinkingMessage();
+            console.error("Error:", err);
+        });
+    }
+
+    document.getElementById("sendButton").addEventListener("click", () => {
+        const input = document.getElementById("response");
+        const text = input.value.trim();
+        if (!text) return;
+        addMessage(text, true);
+        messageHistory.push({ role: "user", content: text });
+        input.value = "";
+        sendMessageToServer();
+    });
+
+    // Enter key behavior
+    document.getElementById("response").addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            document.getElementById("sendButton").click();
+        }
+    });
+
+    // Clear button
+    document.getElementById("clearButton").addEventListener("click", () => {
+        if (confirm("Are you sure you want to clear all messages?")) {
+            messageHistory = [{
+                role: "system",
+                content: "You are a concise dashboard assistant. Answer clearly and briefly with a focus on actionable suggestions for dashboard creation."
+            }];
+            sessionStorage.removeItem("chatHistory");
+            document.getElementById("chatContainer").innerHTML = "";
+        }
+    });
+
+    // Load from sessionStorage
+    window.addEventListener("DOMContentLoaded", () => {
+        const saved = sessionStorage.getItem("chatHistory");
+        if (saved) {
+            messageHistory = JSON.parse(saved);
+            messageHistory.forEach(msg => {
+                if (msg.role !== "system") addMessage(msg.content, msg.role === "user");
+            });
+        } else {
+            messageHistory.push({
+                role: "system",
+                content: "You are a concise dashboard assistant. Answer clearly and briefly with a focus on actionable suggestions for dashboard creation. Do not answer any questions outside of dashboard creation, business data in csv files, or visual design of dashboards."
+            });
+        }
+    });
+
+    // Save chat state
+    window.addEventListener("beforeunload", () => {
+        sessionStorage.setItem("chatHistory", JSON.stringify(messageHistory));
+    });
+</script>
+
+<style>
+    .chat-container {
+        background: #2c2c2c;
+        padding: 30px;
+        border-radius: 12px;
+        max-width: 900px;
+        margin: 0 auto;
+        color: #f0f0f0;
+        min-height: 70vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-message {
+        flex: 1;
+        overflow-y: auto;
+        max-height: 100%;
+        margin-bottom: 10px;
+    }
+
+    .bot-message-text {
+        background-color: #343a40;
+        color: #f8f9fa;
+    }
+
+    .message-text {
+        background-color: #495057;
+        color: #f8f9fa;
+    }
+
+    textarea.form-control {
+        background-color: #1e1e1e !important;
+        color: #f8f9fa !important;
+        border: 1px solid #555;
+        caret-color: #ffffff;
+    }
+
+    textarea.form-control::placeholder {
+        color: #cccccc;
+        opacity: 1;
+    }
+
+    .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+</style>
+{% endblock %}

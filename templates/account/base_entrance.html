@@ -1,0 +1,53 @@
+<!-- base_entrance.html -->
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block head_title %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+      body {
+        background-color: #121212;
+        color: #f0f0f0;
+      }
+      .form-control {
+        background-color: #1e1e1e;
+        color: #fff;
+        border-color: #333;
+      }
+      .form-control:focus {
+        background-color: #1e1e1e;
+        color: #fff;
+        border-color: #555;
+        box-shadow: none;
+      }
+      .form-text.text-muted {
+        color: #ccc !important;
+      }
+      button {
+        padding: 0.375rem;
+        border-radius: 0.375rem;
+        background-color: #0d6efd; /* Bootstrap default primary */
+        color: #fff;
+        border-color: #0d6efd;
+    }
+    button-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+        color: #fff;
+    }
+    </style>
+  </head>
+  <body class="bg-dark">
+    <main class="py-5">
+      <div class="container">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+    {% block extra_body %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

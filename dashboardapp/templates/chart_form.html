@@ -1,0 +1,18 @@
+<!-- chart_form.html -->
+{% extends "base.html" %}
+{% block title %}Edit Chart{% endblock %}
+{% block content %}
+<section class="py-5 bg-dark text-light">
+  <div class="container">
+    <h2 class="text-center mb-4">Edit Chart</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="text-center mt-3">
+        <button type="submit" class="btn btn-success">Save</button>
+        <a href="{% url 'dashboard_detail' chart.dashboard.id %}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

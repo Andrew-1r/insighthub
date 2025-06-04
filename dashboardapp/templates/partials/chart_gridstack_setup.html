@@ -1,0 +1,235 @@
+<!-- partials/chart_gridstack_setup.html -->
+<link href="https://cdn.jsdelivr.net/npm/gridstack/dist/gridstack.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/gridstack/dist/gridstack-all.js"></script>
+<script>
+  // Disable GridStack auto-init warning
+  GridStack.initAll = () => {};
+</script>
+
+<!-- chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Load metadata for chart column types and visibility controls
+const columnTypes = JSON.parse(document.getElementById('column-types-data').textContent);
+const yGroup = document.getElementById('yColumnGroup');
+const colorGroup = document.getElementById('colorPickerGroup');
+
+let chartId = 0;
+let grid;
+let serializedFull;
+const activeCharts = new Map();
+const isOwner = JSON.parse(document.getElementById('is-owner-flag').textContent);
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Parse column metadata and dropdown targets
+  const columnTypes = JSON.parse(document.getElementById('column-types-data').textContent);
+  const columns = JSON.parse(document.getElementById('columns-data').textContent);
+
+  const xSelect = document.getElementById('xColumn');
+  const ySelect = document.getElementById('yColumn');
+
+  // Populate dropdowns with column names; only numeric columns go to Y
+  columns.forEach(col => {
+    const option = `<option value="${col}">${col}</option>`;
+    xSelect.innerHTML += option;
+    if (columnTypes[col] === 'numeric') {
+        ySelect.innerHTML += option;
+    }
+  });
+
+  // Initialize GridStack with interaction constraints based on ownership
+  grid = GridStack.init({
+    el: document.querySelector('.grid-stack'),
+    removable: isOwner ? '#trash' : false,
+    float: false,
+    column: 6,
+    cellHeight: 100,
+    disableResize: !isOwner,
+    disableDrag: !isOwner,
+    dragInOptions: isOwner ? { handle: '.grid-stack-item-content' } : null,
+    handle: '.grid-stack-item-content'
+  });
+
+  // Load existing chart layout if present
+  const layoutData = document.getElementById('initial-layout');
+  if (layoutData) {
+    const parsed = JSON.parse(layoutData.textContent);
+    serializedFull = parsed;
+
+    parsed.forEach((widget, i) => {
+      const id = `chart-${i}`;
+      const el = document.createElement('div');
+      el.classList.add('grid-stack-item');
+      el.setAttribute('gs-x', widget.x);
+      el.setAttribute('gs-y', widget.y);
+      el.setAttribute('gs-w', widget.w);
+      el.setAttribute('gs-h', widget.h);
+      el.setAttribute('data-chart-id', id);
+      el.innerHTML = `
+        <div class="grid-stack-item-content card bg-dark text-light p-2">
+          <canvas id="${id}"></canvas>
+        </div>`;
+      if (widget.chartConfig) {
+        el.dataset.chartConfig = JSON.stringify(widget.chartConfig);
+      }
+      grid.makeWidget(el);
+
+      // Lock widget if not owner (doesn't work)
+      if (!isOwner) {
+        grid.update(el, { disableResize: true, disableDrag: true });
+      }
+
+      // Recreate Chart.js instance
+      if (widget.chartConfig) {
+        const ctx = document.getElementById(id).getContext('2d');
+        const chart = new Chart(ctx, widget.chartConfig);
+        activeCharts.set(id, chart);
+      }
+      chartId++;
+    });
+  }
+
+  /**
+   * Creates and inserts a new chart widget into the grid.
+   * @param {string} type - The type of Chart.js chart (e.g. 'bar', 'pie').
+   * @param {object} chartData - Chart.js data object.
+   * @param {string} title - Title for the chart.
+   */
+  function createChartWidget(type, chartData, title) {
+    const id = `chart-${chartId++}`;
+    const el = document.createElement('div');
+    el.classList.add('grid-stack-item');
+    el.setAttribute('gs-w', '2');
+    el.setAttribute('gs-h', '2');
+    el.setAttribute('data-chart-id', id);
+    el.innerHTML = `
+        <div class="grid-stack-item-content card bg-dark text-light p-2">
+            <canvas id="${id}"></canvas>
+        </div>`;
+    grid.addWidget(el);
+
+    const ctx = document.getElementById(id).getContext('2d');
+
+    // Chart.js config with dynamic options for pie vs other types
+    const config = {
+    type: type,
+    data: {
+        labels: chartData.labels,
+        datasets: [{
+            label: title || `${type} Chart`,
+            data: chartData.data,
+            backgroundColor: type === 'pie'
+                ? Array(chartData.data.length).fill().map((_, i) => `hsl(${(chartId + i) * 47 % 360}, 100%, 50%)`)
+                : document.getElementById('colorPicker')?.value || 'hsl(200, 100%, 50%)',
+            borderColor: '#000',
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: { color: '#fff' }
+            },
+            title: {
+                display: true,
+                text: title || `${type} Chart`, // ✅ This displays the title at the top
+                color: '#fff',
+                font: { size: 16 }
+            }
+        },
+        scales: type === 'pie' ? {} : {
+            x: {
+                title: { display: true, text: chartData.xLabel || 'X', color: '#fff' },
+                ticks: { color: '#fff' },
+                grid: { color: 'rgba(255,255,255,0.1)' }
+            },
+            y: {
+                title: { display: true, text: chartData.yLabel || 'Y', color: '#fff' },
+                ticks: { color: '#fff' },
+                grid: { color: 'rgba(255,255,255,0.1)' },
+                beginAtZero: true
+            }
+        }
+    }
+};
+
+
+    const chart = new Chart(ctx, config);
+    activeCharts.set(id, chart);
+    el.dataset.chartConfig = JSON.stringify(config);
+  }
+
+  // Modal setup for chart type selection and field visibility
+  let currentChartType = 'bar';
+
+  document.getElementById('add-bar').onclick = () => {
+    currentChartType = 'bar';
+    yGroup.classList.remove('d-none');
+    colorGroup.classList.remove('d-none');
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('chartModal')).show();
+};
+
+document.getElementById('add-line').onclick = () => {
+    currentChartType = 'line';
+    yGroup.classList.remove('d-none');
+    colorGroup.classList.remove('d-none');
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('chartModal')).show();
+};
+
+document.getElementById('add-pie').onclick = () => {
+    currentChartType = 'pie';
+    yGroup.classList.add('d-none');
+    colorGroup.classList.add('d-none');
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('chartModal')).show();
+};
+
+  /**
+   * Handles chart creation via API call to server using selected fields.
+   */
+  document.getElementById('createChartButton').onclick = async () => {
+    const xCol = document.getElementById('xColumn').value;
+    const yCol = document.getElementById('yColumn').value;
+    const chartTitle = document.getElementById('chartLabel').value.trim();
+    
+    // Fetch processed data via an API endpoint
+    const response = await fetch(`/insighthub/api/get_chart_data/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ xCol, yCol, chartType: currentChartType })
+    });
+    const chartData = await response.json();
+
+    createChartWidget(currentChartType, chartData, chartTitle);  // reuse your existing chart function
+    bootstrap.Modal.getInstance(document.getElementById('chartModal')).hide();
+  };
+
+  /**
+   * Saves current grid layout to the backend, including chart configuration.
+   */
+  document.getElementById('save-grid').onclick = () => {
+    const layout = grid.save(false);
+    layout.forEach((widget, i) => {
+      const id = `chart-${i}`;
+      const node = grid.engine.nodes.find(n => n.el?.getAttribute('data-chart-id') === id);
+      widget.chartConfig = node?.el?.dataset?.chartConfig ? JSON.parse(node.el.dataset.chartConfig) : null;
+      widget.id = id;
+    });
+
+    document.querySelector('#saved-data').value = JSON.stringify(layout);
+    fetch(window.location.pathname + 'save_layout/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      },
+      body: JSON.stringify({ layout })
+    });
+  };
+});
+</script>

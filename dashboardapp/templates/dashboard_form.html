@@ -1,0 +1,25 @@
+<!-- dashboard_form.html -->
+{% extends 'base.html' %}
+{% block title %}Edit Dashboard{% endblock %}
+{% block content %}
+<section class="py-5 bg-dark text-light">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <h2 class="text-center mb-4">Edit Dashboard</h2>
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            {{ form.title.label_tag }}
+            {{ form.title }}
+          </div>
+          <div class="text-center mt-3">
+            <button type="submit" class="btn btn-success">Save</button>
+            <a href="{% url 'dashboard_list' %}" class="btn btn-secondary ms-2">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
