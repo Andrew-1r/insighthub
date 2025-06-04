@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ge3qlz_64kwarchegk9bz7$h@5z6t_bg8j($0q6d-&@n74f^4_'
+SECRET_KEY = ''
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -136,7 +136,7 @@ STATIC_ROOT = "/var/www/htdocs/insighthub_static/"  # Used in production
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-OPENAI_API_KEY = "<INSERT OPENAI KEY>"
+OPENAI_API_KEY = ""
 
 AUTHENTICATION_BACKENDS = [
     
@@ -157,8 +157,8 @@ MEDIA_ROOT = '/home/s4828041/www/htdocs/media'
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'client_id': '1098643297459-rpaj01sbq2fqqk2btjmm8fg46kk1iaih.apps.googleusercontent.com',
-            'secret': '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',     
+            'client_id': '',
+            'secret': '',     
         },
         'SCOPE': ['profile','email',],
         'AUTH_PARAMS': {'access_type': 'online'},
